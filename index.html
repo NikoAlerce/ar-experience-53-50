@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>53 - AR Experience</title>
+    <!-- MindAR: Usando EXACTAMENTE la versión del ejemplo que funciona -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@0.3.1/dist/mindar.prod.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Botón de inicio para móviles - OBLIGATORIO según mejores prácticas */
+        .start-button {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #007AFF;
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 8px 32px rgba(0, 122, 255, 0.4);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .start-button:hover {
+            background: #0056CC;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        
+        .start-button:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        /* Instrucciones optimizadas */
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        /* Info de debug simplificada */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            max-height: 80px;
+            overflow-y: auto;
+            white-space: pre-line;
+            z-index: 1000;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .loading-content h1 {
+                font-size: 20px;
+            }
+            
+            .loading-content p {
+                font-size: 14px;
+            }
+            
+            .camera-instructions {
+                left: 16px;
+                right: 16px;
+                top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de inicio - OBLIGATORIO para móviles -->
+    <button class="start-button" id="startButton">
+        📱 Iniciar Experiencia AR
+        <br><small>Toca para empezar</small>
+    </button>
+    
+    <!-- Instrucciones optimizadas -->
+    <div class="instructions" id="instructions">
+        🎯 Apunta la cámara al marcador para ver <strong>53</strong>
+    </div>
+    
+    <!-- Info de debug -->
+    <div class="debug-info" id="debugInfo">
+        Listo para iniciar AR...
+    </div>
+
+    <a-scene 
+        mindar="imageTargetSrc: ./target.mind; showStats: false;" 
+        color-space="sRGB" 
+        renderer="colorManagement: true, physicallyCorrectLights" 
+        vr-mode-ui="enabled: false" 
+        device-orientation-permission-ui="enabled: false"
+        id="arScene">
+        
+        <a-assets>
+            <video id="content-video" src="./assets/content_1757973815157_optimized.mp4" preload="auto" loop crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-entity mindar-image-target="targetIndex: 0" id="ar-content">
+            <a-video 
+                id="ar-video"
+                src="#content-video" 
+                width="2" 
+                height="1.5" 
+                position="0 0 0"
+                scale="1 1 1"
+                material="transparent: true; alphaTest: 0.1"
+                animation__appear="property: scale; from: 0 0 0; to: 1 1 1; dur: 1000; easing: easeOutBack; startEvents: targetFound"
+                class="clickable">
+              </a-video>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // JavaScript simplificado basado en ejemplos que funcionan
+        console.log('🚀 Iniciando experiencia AR...');
+        
+        const instructions = document.getElementById('instructions');
+        const debugInfo = document.getElementById('debugInfo');
+        const startButton = document.getElementById('startButton');
+        
+        // Detectar dispositivo
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log(isMobile ? '📱 Dispositivo móvil detectado' : '💻 Dispositivo desktop detectado');
+        
+        // Función simple para iniciar AR
+        async function startAR() {
+            try {
+                console.log('🎯 Usuario inició AR...');
+                startButton.style.display = 'none';
+                instructions.textContent = '📹 Solicitando acceso a cámara...';
+                
+                // Solicitar permisos de cámara
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: isMobile ? 'environment' : 'user' }
+                });
+                
+                console.log('✅ Permisos de cámara obtenidos');
+                stream.getTracks().forEach(track => track.stop()); // MindAR manejará la cámara
+                
+                // Buscar y activar MindAR (versión 0.3.1)
+                const scene = document.querySelector('a-scene');
+                
+                // En versión 0.3.1, MindAR se autoactiva, solo verificamos que exista
+                if (typeof window.MINDAR !== 'undefined' || scene.systems['mindar']) {
+                    console.log('✅ MindAR encontrado, ya está activo');
+                    instructions.textContent = '🎯 Apunta la cámara al marcador para ver 53';
+                    instructions.style.background = 'rgba(0, 150, 0, 0.8)';
+                } else {
+                    // Dar más tiempo para la inicialización automática
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    if (typeof window.MINDAR !== 'undefined' || scene.systems['mindar']) {
+                        console.log('✅ MindAR encontrado después de espera');
+                        instructions.textContent = '🎯 Apunta la cámara al marcador para ver 53';
+                        instructions.style.background = 'rgba(0, 150, 0, 0.8)';
+                    } else {
+                        throw new Error('MindAR no se cargó correctamente');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                startButton.style.display = 'block';
+                
+                if (error.name === 'NotAllowedError') {
+                    startButton.innerHTML = '🚫 Permisos Denegados<br><small>Permite acceso a la cámara</small>';
+                } else {
+                    startButton.innerHTML = '❌ Error - Reintentar<br><small>' + error.message + '</small>';
+                }
+                
+                instructions.style.display = 'none';
+            }
+        }
+        
+        // Eventos de tracking
+        document.addEventListener('DOMContentLoaded', () => {
+            const arContent = document.querySelector('#ar-content');
+            if (arContent) {
+                arContent.addEventListener('targetFound', () => {
+                    console.log('🎯 ¡Marcador encontrado!');
+                    instructions.textContent = '✅ ¡Marcador detectado! Experiencia AR activa';
+                    instructions.style.background = 'rgba(0, 150, 0, 0.8)';
+                });
+                
+                arContent.addEventListener('targetLost', () => {
+                    console.log('❌ Marcador perdido');
+                    instructions.textContent = '🔍 Busca el marcador para ver 53';
+                    instructions.style.background = 'rgba(0, 0, 0, 0.8)';
+                });
+            }
+        });
+        
+        // Iniciar cuando el usuario haga clic
+        startButton.addEventListener('click', startAR);
+        
+        // Optimizaciones móviles básicas
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('gesturechange', e => e.preventDefault());
+    </script>
+</body>
+</html>
